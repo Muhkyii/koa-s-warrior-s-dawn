@@ -1,25 +1,25 @@
 import { Nav } from "@/components/Nav";
 import { Hero } from "@/components/sections/Hero";
-import { Features } from "@/components/sections/Features";
-import { HowItWorks } from "@/components/sections/HowItWorks";
-import { Audiences } from "@/components/sections/Audiences";
-import { Pricing } from "@/components/sections/Pricing";
-import { FAQ } from "@/components/sections/FAQ";
-import { FinalCTA } from "@/components/sections/FinalCTA";
 import { Footer } from "@/components/sections/Footer";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background font-sans text-foreground">
+    <div className="relative flex min-h-screen flex-col bg-background font-sans text-foreground">
+      {/* top alert banner */}
+      <div className="w-full border-b border-border/60 bg-surface-warm">
+        <a
+          href="sms:+14157700232"
+          className="mx-auto flex max-w-6xl items-center justify-center gap-2 px-6 py-2.5 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-[hsl(var(--amber))]" />
+          <span>Koa not responding?</span>
+          <span className="underline underline-offset-4">Press here for a new number.</span>
+        </a>
+      </div>
+
       <Nav />
-      <main>
+      <main className="flex flex-1 items-center justify-center">
         <Hero />
-        <Features />
-        <HowItWorks />
-        <Audiences />
-        <Pricing />
-        <FAQ />
-        <FinalCTA />
       </main>
       <Footer />
     </div>
