@@ -29,10 +29,13 @@ const items = [
 ];
 
 export const FAQ = () => (
-  <Section id="faq" className="px-6 py-24 sm:py-32">
+  <Section id="faq" className="relative border-t border-border/60 px-6 py-28">
     <div className="mx-auto max-w-2xl">
-      <h2 className="text-center text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-        questions
+      <div className="text-center font-mono-tomo text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+        FAQ
+      </div>
+      <h2 className="mt-5 text-center text-4xl font-bold leading-tight text-foreground sm:text-5xl">
+        Questions? <span className="font-serif-italic font-normal">Same</span>.
       </h2>
       <Accordion type="single" collapsible className="mt-12 w-full">
         {items.map((item, i) => (
