@@ -1,33 +1,24 @@
-import { useEffect, useState } from "react";
-
 export const Nav = () => {
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
   return (
-    <header
-      className={`sticky top-0 z-50 w-full bg-background/85 backdrop-blur-md transition-colors ${
-        scrolled ? "border-b border-border/70" : "border-b border-transparent"
-      }`}
-    >
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-        <a href="#top" className="text-xl font-bold tracking-tight text-foreground">
-          koa
+    <header className="w-full">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+        <a href="#top" className="font-mono-tomo text-[22px] font-medium text-foreground">
+          Koa
         </a>
-        <nav className="hidden items-center gap-8 text-sm text-muted-foreground sm:flex">
-          <a href="#pricing" className="transition-colors hover:text-foreground">pricing</a>
-          <a href="#faq" className="transition-colors hover:text-foreground">faq</a>
-        </nav>
+
+        <div className="hidden items-center gap-2 rounded-full border border-border/70 bg-surface/60 py-1 pl-1 pr-4 text-[13px] text-muted-foreground sm:flex">
+          <div className="flex -space-x-2">
+            <span className="h-7 w-7 rounded-full border border-border bg-[hsl(var(--amber))]/70" />
+            <span className="h-7 w-7 rounded-full border border-border bg-[hsl(var(--imessage))]/60" />
+          </div>
+          <span>Trusted by 12,000+ people locking in today.</span>
+        </div>
+
         <a
-          href="#cta"
-          className="inline-flex items-center rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground shadow-soft transition-all hover:-translate-y-0.5 hover:bg-primary-deep"
+          href="#top"
+          className="rounded-full border border-border/70 bg-surface/60 px-4 py-2 text-[13px] font-medium text-foreground transition-colors hover:bg-surface"
         >
-          start free
+          Login
         </a>
       </div>
     </header>
