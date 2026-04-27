@@ -19,6 +19,12 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        gold: {
+          DEFAULT: "hsl(var(--gold))",
+          glow: "hsl(var(--gold-glow))",
+        },
+        sakura: "hsl(var(--sakura))",
+        ghost: "hsl(var(--ghost))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -63,6 +69,19 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      fontFamily: {
+        display: ['"Cormorant Garamond"', 'serif'],
+        sans: ['"Inter"', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
+      },
+      backgroundImage: {
+        'gradient-hero': 'var(--gradient-hero)',
+        'gradient-gold': 'var(--gradient-gold)',
+      },
+      boxShadow: {
+        'gold': 'var(--shadow-gold)',
+        'elegant': 'var(--shadow-elegant)',
+      },
       keyframes: {
         "accordion-down": {
           from: {
@@ -80,10 +99,37 @@ export default {
             height: "0",
           },
         },
+        "fade-up": {
+          "0%": { opacity: "0", transform: "translateY(30px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "fade-in": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        "float-petal": {
+          "0%": { transform: "translateY(-10vh) translateX(0) rotate(0deg)", opacity: "0" },
+          "10%": { opacity: "0.8" },
+          "90%": { opacity: "0.8" },
+          "100%": { transform: "translateY(110vh) translateX(40px) rotate(360deg)", opacity: "0" },
+        },
+        "pulse-glow": {
+          "0%, 100%": { opacity: "0.6", transform: "scale(1)" },
+          "50%": { opacity: "1", transform: "scale(1.05)" },
+        },
+        "shimmer": {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-up": "fade-up 1s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+        "fade-in": "fade-in 1.5s ease-out forwards",
+        "float-petal": "float-petal linear infinite",
+        "pulse-glow": "pulse-glow 4s ease-in-out infinite",
+        "shimmer": "shimmer 3s linear infinite",
       },
     },
   },
