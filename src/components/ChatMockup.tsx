@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 type Msg = { from: "user" | "koa"; text: string };
 
 const script: Msg[] = [
-  { from: "user", text: "skipped the gym today" },
-  { from: "koa", text: "soft. what actually stopped you" },
-  { from: "user", text: "was tired" },
-  { from: "koa", text: "you slept 9 hours bro. lock in tomorrow" },
+  { from: "user", text: "skipped the gym today 😮‍💨" },
+  { from: "koa", text: "soft. what actually stopped you?" },
+  { from: "user", text: "was tired bro" },
+  { from: "koa", text: "you slept 9 hours. lock in tomorrow — 6am, I'm texting you." },
+  { from: "user", text: "bet. also remind me to call mom" },
+  { from: "koa", text: "got it. saved. she's gonna be happy ❤️" },
 ];
 
 export const ChatMockup = () => {
@@ -16,21 +18,24 @@ export const ChatMockup = () => {
 
   useEffect(() => {
     let cancelled = false;
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
     const run = async () => {
-      const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
-      // initial pause
-      await wait(400);
-      for (let i = 0; i < script.length; i++) {
-        if (cancelled) return;
-        const m = script[i];
-        if (m.from === "koa") {
-          setTyping(true);
-          await wait(1100);
+      while (!cancelled) {
+        setVisible([]);
+        await wait(500);
+        for (let i = 0; i < script.length; i++) {
           if (cancelled) return;
-          setTyping(false);
+          const m = script[i];
+          if (m.from === "koa") {
+            setTyping(true);
+            await wait(1100);
+            if (cancelled) return;
+            setTyping(false);
+          }
+          setVisible((v) => [...v, m]);
+          await wait(m.from === "user" ? 750 : 1100);
         }
-        setVisible((v) => [...v, m]);
-        await wait(m.from === "user" ? 700 : 900);
+        await wait(2500); // pause at end, then loop
       }
     };
     run();
@@ -38,16 +43,16 @@ export const ChatMockup = () => {
   }, []);
 
   return (
-    <div className="mx-auto w-full max-w-md">
-      <div className="overflow-hidden rounded-[28px] border border-border/70 bg-surface shadow-lift">
+    <div className="mx-auto w-full max-w-sm">
+      <div className="overflow-hidden rounded-[28px] border border-border/70 bg-surface/90 shadow-lift backdrop-blur">
         {/* header */}
-        <div className="flex items-center justify-between border-b border-border/60 px-5 py-3 text-xs text-muted-foreground">
+        <div className="flex items-center justify-between border-b border-border/60 px-5 py-3 text-[11px] text-muted-foreground">
           <span>9:41</span>
-          <span className="font-medium text-foreground">koa</span>
+          <span className="font-mono-tomo font-medium text-foreground">Koa</span>
           <span className="opacity-60">●●●</span>
         </div>
         {/* messages */}
-        <div className="flex flex-col gap-2.5 bg-surface p-5 min-h-[320px]">
+        <div className="flex flex-col gap-2 bg-surface/80 p-4 min-h-[380px]">
           <AnimatePresence initial={false}>
             {visible.map((m, i) => (
               <motion.div
@@ -58,10 +63,10 @@ export const ChatMockup = () => {
                 className={`flex ${m.from === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[78%] rounded-3xl px-4 py-2.5 text-[15px] leading-snug ${
+                  className={`max-w-[78%] rounded-[22px] px-4 py-2 text-[14px] leading-snug ${
                     m.from === "user"
-                      ? "bg-bubble-user text-foreground rounded-br-md"
-                      : "bg-bubble-ai text-foreground rounded-bl-md"
+                      ? "bg-[hsl(var(--imessage))] text-white rounded-br-[6px]"
+                      : "bg-bubble-ai text-foreground rounded-bl-[6px]"
                   }`}
                 >
                   {m.text}
