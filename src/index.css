@@ -8,35 +8,48 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Koa — warrior brand. Deep ocean teal, warrior gold, sakura pink */
+    --background: 210 43% 6%;          /* #0a1018 deep ocean teal */
+    --foreground: 210 30% 94%;         /* #e8eef5 ghost white */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 210 40% 8%;
+    --card-foreground: 210 30% 94%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 210 43% 6%;
+    --popover-foreground: 210 30% 94%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 32 48% 64%;             /* #d4a574 warrior gold */
+    --primary-foreground: 210 43% 6%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 210 35% 12%;
+    --secondary-foreground: 210 30% 94%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 210 30% 14%;
+    --muted-foreground: 210 20% 68%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 348 100% 85%;            /* #ffb3c1 sakura */
+    --accent-foreground: 210 43% 6%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 210 30% 16%;
+    --input: 210 30% 16%;
+    --ring: 32 48% 64%;
 
-    --radius: 0.5rem;
+    --radius: 0.25rem;
+
+    --gold: 32 48% 64%;
+    --gold-glow: 36 70% 72%;
+    --sakura: 348 100% 85%;
+    --ghost: 210 30% 94%;
+    --teal-deep: 210 43% 6%;
+
+    --gradient-hero: radial-gradient(ellipse at center, hsl(210 40% 10%) 0%, hsl(var(--teal-deep)) 70%);
+    --gradient-gold: linear-gradient(135deg, hsl(var(--gold)) 0%, hsl(var(--gold-glow)) 100%);
+    --shadow-gold: 0 0 80px -10px hsl(var(--gold) / 0.5), 0 0 30px -5px hsl(var(--gold-glow) / 0.4);
+    --shadow-elegant: 0 30px 80px -20px hsl(0 0% 0% / 0.6);
+    --transition-smooth: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 
     --sidebar-background: 0 0% 98%;
 
