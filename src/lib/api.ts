@@ -6,7 +6,7 @@
 
 const BASE: string =
   // @ts-expect-error — Vite injects import.meta.env at build time
-  (import.meta.env?.VITE_API_URL as string) || "http://localhost:8771";
+  (import.meta.env?.VITE_API_URL as string) || "https://koa-web-api.fly.dev";
 
 const TOKEN_KEY = "koa_jwt";
 
