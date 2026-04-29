@@ -1,9 +1,3 @@
-// src/lib/api.ts — typed client for web_api.py.
-//
-// Set VITE_API_URL in Lovable → Settings → Environment Variables to your
-// deployed backend (e.g. https://koa-web-api.fly.dev). For local dev, put
-// it in .env.local at the repo root.
-
 const BASE: string =
   // @ts-expect-error — Vite injects import.meta.env at build time
   (import.meta.env?.VITE_API_URL as string) || "https://koa-web-api.fly.dev";
@@ -71,6 +65,7 @@ export type Profile = {
   name: string | null;
   email: string | null;
   phone: string | null;
+  timezone: string | null;
   tier: "free" | "trialing" | "personal" | "hustle" | "edge" | null;
   subscription_status: string | null;
   trial_ends_at: number | null;
@@ -111,10 +106,21 @@ export type Integration = {
   [k: string]: unknown;
 };
 
+export type ProfileUpdate = {
+  name?: string;
+  email?: string;
+  timezone?: string;
+};
+
 export const me = {
   profile: () => req<Profile>("/auth/me"),
   usage: () => req<Usage>("/auth/me/usage"),
   mode: () => req<ModeState>("/auth/me/mode"),
+  update: (patch: ProfileUpdate) =>
+    req<Profile>("/auth/me", {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    }),
 };
 
 export const integrations = {

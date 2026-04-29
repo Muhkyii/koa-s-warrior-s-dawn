@@ -24,7 +24,7 @@ export default function Dashboard() {
         {/* Top alert banner — matches landing */}
         <div className="relative z-20 w-full border-b border-border/60 bg-surface-warm">
           <a
-            href="sms:+14157700232"
+            href="sms:+17862847802"
             className="mx-auto flex max-w-6xl items-center justify-center gap-2 px-6 py-2.5 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
           >
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-[hsl(var(--amber))]" />

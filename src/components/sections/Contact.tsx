@@ -14,7 +14,7 @@ export const Contact = () => (
       </p>
       <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
         <a
-          href="sms:+14157700578?&body=hey%20koa%20team"
+          href="sms:+17862847802?&body=hey%20koa%20team"
           className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground shadow-glow-cta transition-transform hover:-translate-y-0.5"
         >
           <MessageSquare className="h-4 w-4" />

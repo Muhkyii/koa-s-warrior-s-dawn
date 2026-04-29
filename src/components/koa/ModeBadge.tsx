@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 const TONE: Record<NonNullable<ModeState["mode"]>, string> = {
-  crisis:  "bg-destructive text-destructive-foreground hover:bg-destructive",
+  crisis:  "bg-destructive text-destructive-foreground",
   onboard: "bg-[hsl(var(--amber))] text-black",
   trader:  "bg-blue-500 text-white",
   utility: "bg-emerald-500 text-white",
@@ -27,20 +27,18 @@ export function ModeBadge() {
     };
   }, []);
 
-  if (!m) return null;
-
-  const label = m.mode ?? "idle";
-  const cls = m.mode ? TONE[m.mode] : "bg-muted text-muted-foreground";
+  // Hide entirely when there's nothing to show — keeps the header clean.
+  if (!m || !m.mode) return null;
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Badge className={`font-mono uppercase tracking-wider ${cls}`}>
-          {label}
+        <Badge className={`font-mono uppercase tracking-wider ${TONE[m.mode]}`}>
+          {m.mode}
         </Badge>
       </TooltipTrigger>
       <TooltipContent>
-        {m.reason ?? "no recent classification"}
+        {m.reason ?? "current conversation mode"}
         {m.crisis_lock_active && m.crisis_lock_expires_at && (
           <div className="mt-1 text-xs opacity-75">
             lock lifts at{" "}

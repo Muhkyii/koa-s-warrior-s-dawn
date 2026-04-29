@@ -73,6 +73,47 @@
   h1, h2, h3 { letter-spacing: -0.035em; }
 }
 
+@layer base {
+  /* Light theme — opt-in via .light class on <html>, set by next-themes. */
+  .light {
+    --background: 0 0% 100%;
+    --surface: 0 0% 96%;
+    --surface-warm: 30 30% 97%;
+    --foreground: 0 0% 8%;
+    --foreground-soft: 0 0% 30%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 8%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 8%;
+
+    --primary: 0 0% 8%;
+    --primary-foreground: 0 0% 100%;
+    --primary-deep: 0 0% 18%;
+
+    --secondary: 0 0% 94%;
+    --secondary-foreground: 0 0% 8%;
+
+    --muted: 0 0% 94%;
+    --muted-foreground: 0 0% 38%;
+
+    --accent: 0 0% 8%;
+    --accent-foreground: 0 0% 100%;
+    --accent-soft: 0 0% 94%;
+
+    --bubble-user: 0 0% 92%;
+    --bubble-ai: 0 0% 96%;
+
+    --destructive: 0 70% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 88%;
+    --input: 0 0% 88%;
+    --ring: 0 0% 8%;
+  }
+}
+
 @layer utilities {
   .shadow-soft { box-shadow: var(--shadow-soft); }
   .shadow-card { box-shadow: var(--shadow-card); }

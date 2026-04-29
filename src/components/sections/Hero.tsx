@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
 import { ChatMockup } from "@/components/ChatMockup";
 
-const KOA_SMS = "sms:+14157700578?&body=so%20what%20is%20koa%20anyways%3F";
+const KOA_SMS = "sms:+17862847802?&body=so%20what%20is%20koa%20anyways%3F";
 
 export const Hero = () => {
   return (

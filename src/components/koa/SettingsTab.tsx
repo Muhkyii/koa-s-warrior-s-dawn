@@ -1,9 +1,27 @@
 import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 import { me, type Profile } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Sun, Moon, ChevronDown, Phone, Mail, User, Globe } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Sun,
+  Moon,
+  ChevronDown,
+  Phone,
+  Mail,
+  User,
+  Globe,
+  Check,
+  Loader2,
+} from "lucide-react";
 
 export function SettingsTab() {
   return (
@@ -16,22 +34,61 @@ export function SettingsTab() {
   );
 }
 
-// ─── Profile ────────────────────────────────────────────────────────
+// ─── Profile (editable + saves) ─────────────────────────────────────
+const TIMEZONES: { value: string; label: string }[] = [
+  { value: "America/New_York",    label: "Eastern Time (ET) — New York, Toronto, Miami" },
+  { value: "America/Chicago",     label: "Central Time (CT) — Chicago, Dallas, Mexico City" },
+  { value: "America/Denver",      label: "Mountain Time (MT) — Denver, Phoenix" },
+  { value: "America/Los_Angeles", label: "Pacific Time (PT) — Los Angeles, Seattle" },
+  { value: "America/Anchorage",   label: "Alaska Time (AKT)" },
+  { value: "Pacific/Honolulu",    label: "Hawaii Time (HT)" },
+  { value: "Europe/London",       label: "GMT / BST — London" },
+  { value: "Europe/Paris",        label: "CET / CEST — Paris, Berlin, Madrid" },
+  { value: "Europe/Athens",       label: "EET / EEST — Athens, Helsinki" },
+  { value: "Asia/Dubai",          label: "GST — Dubai" },
+  { value: "Asia/Kolkata",        label: "IST — Mumbai, Delhi" },
+  { value: "Asia/Singapore",      label: "SGT — Singapore" },
+  { value: "Asia/Tokyo",          label: "JST — Tokyo" },
+  { value: "Australia/Sydney",    label: "AEST / AEDT — Sydney" },
+];
+
 function ProfileSection() {
   const [p, setP] = useState<Profile | null>(null);
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [tz, setTz] = useState("Eastern Time (ET) - New York, Toronto, Miami");
+  const [tz, setTz] = useState("America/New_York");
+  const [busy, setBusy] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
     me.profile().then((r) => {
       setP(r);
       setName(r.name ?? "");
-      setPhone(r.phone ?? "");
       setEmail(r.email ?? "");
+      if (r.timezone) setTz(r.timezone);
     });
   }, []);
+
+  const dirty = p && (
+    (name || "") !== (p.name ?? "") ||
+    (email || "") !== (p.email ?? "") ||
+    tz !== (p.timezone ?? "America/New_York")
+  );
+
+  async function save() {
+    setBusy(true); setErr(null); setSaved(false);
+    try {
+      const updated = await me.update({ name, email, timezone: tz });
+      setP(updated);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "save failed");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <section>
@@ -42,8 +99,16 @@ function ProfileSection() {
             Manage your profile information.
           </p>
         </div>
-        <Button variant="outline" size="sm" className="rounded-full" disabled>
-          Update
+        <Button
+          variant="outline"
+          size="sm"
+          className="rounded-full"
+          disabled={!dirty || busy}
+          onClick={save}
+        >
+          {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> :
+           saved ? <><Check className="mr-1 h-3.5 w-3.5" /> Saved</> :
+           "Update"}
         </Button>
       </div>
 
@@ -58,7 +123,7 @@ function ProfileSection() {
         </Field>
         <Field icon={Phone} label="Phone">
           <Input
-            value={phone}
+            value={p?.phone ?? ""}
             disabled
             className="border-0 bg-transparent pl-0 font-mono tabular-nums focus-visible:ring-0"
           />
@@ -72,16 +137,22 @@ function ProfileSection() {
           />
         </Field>
         <Field icon={Globe} label="Timezone">
-          <button
-            type="button"
-            className="flex w-full items-center justify-between bg-transparent pr-2 text-left text-sm"
-          >
-            {tz}
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-          </button>
+          <Select value={tz} onValueChange={setTz}>
+            <SelectTrigger className="border-0 bg-transparent pl-0 focus:ring-0">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {TIMEZONES.map((t) => (
+                <SelectItem key={t.value} value={t.value}>
+                  {t.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </Field>
       </div>
 
+      {err && <p className="mt-2 text-xs text-destructive">{err}</p>}
       {p?.tier && (
         <p className="mt-3 text-xs text-muted-foreground">
           tier:{" "}
@@ -112,21 +183,9 @@ function Field({
   );
 }
 
-// ─── Appearance ─────────────────────────────────────────────────────
+// ─── Appearance — real next-themes wiring ───────────────────────────
 function AppearanceSection() {
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
-
-  useEffect(() => {
-    const saved = (localStorage.getItem("koa_theme") as "light" | "dark") || "dark";
-    setTheme(saved);
-    document.documentElement.classList.toggle("light-theme", saved === "light");
-  }, []);
-
-  function pick(t: "light" | "dark") {
-    setTheme(t);
-    localStorage.setItem("koa_theme", t);
-    document.documentElement.classList.toggle("light-theme", t === "light");
-  }
+  const { theme, setTheme } = useTheme();
 
   return (
     <section>
@@ -137,13 +196,13 @@ function AppearanceSection() {
       <div className="mt-4 grid grid-cols-2 gap-3">
         <ThemeCard
           active={theme === "light"}
-          onClick={() => pick("light")}
+          onClick={() => setTheme("light")}
           icon={<Sun className="h-5 w-5" />}
           label="Light"
         />
         <ThemeCard
           active={theme === "dark"}
-          onClick={() => pick("dark")}
+          onClick={() => setTheme("dark")}
           icon={<Moon className="h-5 w-5" />}
           label="Dark"
         />
@@ -265,8 +324,11 @@ function BillingSection() {
               : "Renews automatically."}
           </p>
         </div>
-        <Button className="w-full rounded-full bg-foreground text-background hover:bg-foreground/90">
-          Manage Subscription
+        <Button
+          className="w-full rounded-full bg-foreground text-background hover:bg-foreground/90"
+          disabled
+        >
+          Manage Subscription — coming soon
         </Button>
       </div>
     </section>
