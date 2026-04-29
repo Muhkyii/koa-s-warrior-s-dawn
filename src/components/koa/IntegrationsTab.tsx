@@ -3,20 +3,23 @@ import { integrations, type Integration } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Calendar,
-  FolderOpen,
-  Mail,
-  MailPlus,
-  CheckSquare,
-  BookOpen,
-  Activity,
-  HeartPulse,
-  Banknote,
   Check,
   Plus,
   Lock,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import {
+  NotionIcon,
+  TodoistIcon,
+  GmailIcon,
+  GoogleCalendarIcon,
+  GoogleDriveIcon,
+  OutlookIcon,
+  StravaIcon,
+  OuraIcon,
+  BankIcon,
+} from "./BrandIcons";
+
+type IconCmp = React.ComponentType<{ className?: string }>;
 
 // Visual catalog — what cards to show. Some slugs are "live" (backed by
 // real connectors); others are "coming" (visual-only placeholders so the
@@ -26,7 +29,7 @@ type CatalogEntry = {
   slug: string;
   label: string;
   description: string;
-  icon: LucideIcon;
+  icon: IconCmp;
   iconBg: string;
   beta?: boolean;
   status: "live" | "coming";
@@ -38,26 +41,26 @@ const CATALOG: Section[] = [
   {
     title: "Productivity",
     entries: [
-      { slug: "gmail", label: "Gmail", description: "Let Koa read & draft your emails.", icon: Mail, iconBg: "bg-red-500/15 text-red-400", status: "coming" },
-      { slug: "google_calendar", label: "Google Calendar", description: "Let Koa help with calendar.", icon: Calendar, iconBg: "bg-blue-500/15 text-blue-400", status: "coming" },
-      { slug: "google_drive", label: "Google Drive", description: "Let Koa help with files.", icon: FolderOpen, iconBg: "bg-yellow-500/15 text-yellow-400", status: "live" },
-      { slug: "outlook", label: "Outlook", description: "Let Koa help with emails / calendar.", icon: MailPlus, iconBg: "bg-sky-500/15 text-sky-400", beta: true, status: "coming" },
-      { slug: "notion", label: "Notion", description: "Let Koa read your pages.", icon: BookOpen, iconBg: "bg-zinc-500/20 text-zinc-200", beta: true, status: "live" },
-      { slug: "todoist", label: "Todoist", description: "Let Koa help with tasks.", icon: CheckSquare, iconBg: "bg-orange-500/15 text-orange-400", status: "live" },
+      { slug: "gmail",           label: "Gmail",           description: "Let Koa read & draft your emails.",  icon: GmailIcon,          iconBg: "bg-white",                   status: "coming" },
+      { slug: "google_calendar", label: "Google Calendar", description: "Let Koa help with calendar.",         icon: GoogleCalendarIcon, iconBg: "bg-white",                   status: "coming" },
+      { slug: "google_drive",    label: "Google Drive",    description: "Let Koa help with files.",            icon: GoogleDriveIcon,    iconBg: "bg-white",                   status: "live" },
+      { slug: "outlook",         label: "Outlook",         description: "Let Koa help with emails / calendar.",icon: OutlookIcon,        iconBg: "bg-white",        beta: true, status: "coming" },
+      { slug: "notion",          label: "Notion",          description: "Let Koa read your pages.",            icon: NotionIcon,         iconBg: "bg-white text-black",          beta: true, status: "live" },
+      { slug: "todoist",         label: "Todoist",         description: "Let Koa help with tasks.",            icon: TodoistIcon,        iconBg: "bg-[#E44332] text-white",                  status: "live" },
     ],
   },
   {
     title: "Health",
     entries: [
-      { slug: "strava", label: "Strava", description: "Let Koa track your fitness.", icon: Activity, iconBg: "bg-orange-600/15 text-orange-500", beta: true, status: "coming" },
-      { slug: "oura", label: "Oura", description: "Let Koa track your health.", icon: HeartPulse, iconBg: "bg-pink-500/15 text-pink-400", beta: true, status: "coming" },
+      { slug: "strava",          label: "Strava",          description: "Let Koa track your fitness.",        icon: StravaIcon,         iconBg: "bg-white",                  beta: true, status: "coming" },
+      { slug: "oura",            label: "Oura",            description: "Let Koa track your health.",         icon: OuraIcon,           iconBg: "bg-white text-black",        beta: true, status: "coming" },
     ],
   },
   {
     title: "Finance",
     badge: "BETA",
     entries: [
-      { slug: "bank", label: "Connect new bank", description: "Let Koa watch your money.", icon: Banknote, iconBg: "bg-emerald-500/15 text-emerald-400", status: "coming" },
+      { slug: "bank",            label: "Connect new bank", description: "Let Koa watch your money.",          icon: BankIcon,           iconBg: "bg-emerald-500/15 text-emerald-400",          status: "coming" },
     ],
   } as Section & { badge?: string },
 ];
@@ -166,7 +169,7 @@ function ConnectorCard({
         <span
           className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${entry.iconBg}`}
         >
-          <Icon className="h-4 w-4" />
+          <Icon className="h-5 w-5" />
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">

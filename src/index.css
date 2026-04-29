@@ -33,7 +33,8 @@
     --accent-foreground: 0 0% 0%;
     --accent-soft: 0 0% 10%;
 
-    --imessage: 142 70% 49%;           /* iMessage green */
+    --imessage: 142 70% 49%;           /* iMessage SMS green */
+    --imessage-blue: 211 100% 53%;     /* iMessage blue (sender) */
     --amber: 38 92% 58%;               /* top banner dot */
 
     --bubble-user: 0 0% 14%;

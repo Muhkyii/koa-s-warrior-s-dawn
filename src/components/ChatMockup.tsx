@@ -65,7 +65,7 @@ export const ChatMockup = () => {
                 <div
                   className={`max-w-[78%] rounded-[22px] px-4 py-2 text-[14px] leading-snug ${
                     m.from === "user"
-                      ? "bg-[hsl(var(--imessage))] text-white rounded-br-[6px]"
+                      ? "bg-[hsl(var(--imessage-blue))] text-white rounded-br-[6px]"
                       : "bg-bubble-ai text-foreground rounded-bl-[6px]"
                   }`}
                 >

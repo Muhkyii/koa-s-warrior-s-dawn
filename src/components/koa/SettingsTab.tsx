@@ -352,7 +352,7 @@ function BillingSection() {
               <ManageOption
                 icon={Sparkles}
                 title="Upgrade plan"
-                subtitle="Unlock unlimited messages + premium features."
+                subtitle="Personal $20/mo · Hustle $50/mo · 7-day trial."
                 ctaLabel="See plans"
                 disabled
                 comingSoon
@@ -403,15 +403,19 @@ function PlanStatusCard({
 
   if (isTrialing) {
     title = `${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left in trial`;
-    subtitle = "Then $9.99, billed monthly.";
-    accent = trialDaysLeft! <= 1 ? "border-[hsl(var(--amber))]/60" : "border-border";
-  } else if (isPaid) {
-    title = `${profile.tier} plan — active`;
-    subtitle = "Renews automatically.";
+    subtitle = "After that you'll be charged $20/mo. Cancel anytime.";
+    accent = trialDaysLeft! <= 2 ? "border-[hsl(var(--amber))]/60" : "border-border";
+  } else if (profile.tier === "personal") {
+    title = "Personal — $20/mo";
+    subtitle = "Renews automatically. Manage subscription below.";
+    accent = "border-emerald-500/40";
+  } else if (profile.tier === "hustle" || profile.tier === "edge") {
+    title = `${profile.tier === "edge" ? "Edge" : "Hustle"} — $50/mo`;
+    subtitle = "Renews automatically. Manage subscription below.";
     accent = "border-emerald-500/40";
   } else {
     title = "Free tier";
-    subtitle = "25 messages/day. Upgrade to chat without limits.";
+    subtitle = "25 messages/day. Start a 7-day trial to chat without limits.";
     accent = "border-border";
   }
 
