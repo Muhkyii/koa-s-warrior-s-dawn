@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
-import { me, auth, type Profile } from "@/lib/api";
+import { me, auth, billing, type Profile } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -349,14 +349,7 @@ function BillingSection() {
 
           {open && (
             <div className="border-t border-border bg-background/40">
-              <ManageOption
-                icon={Sparkles}
-                title="Upgrade plan"
-                subtitle="Personal $20/mo · Hustle $50/mo · 7-day trial."
-                ctaLabel="See plans"
-                disabled
-                comingSoon
-              />
+              <UpgradeOption />
               <div className="mx-4 h-px bg-border" />
               <ManageOption
                 icon={CreditCard}
@@ -591,6 +584,144 @@ function CancelOption({ isTrialing }: { isTrialing: boolean }) {
           )}
         </Button>
       </div>
+    </div>
+  );
+}
+
+
+// ─── Upgrade picker (real Stripe Checkout) ──────────────────────────
+function UpgradeOption() {
+  const [step, setStep] = useState<"closed" | "picker">("closed");
+  const [busy, setBusy] = useState<"personal" | "hustle" | null>(null);
+
+  async function go(tier: "personal" | "hustle") {
+    setBusy(tier);
+    try {
+      const { url } = await billing.checkout(tier);
+      window.location.href = url;
+    } catch (e) {
+      toast.error(errToString(e));
+      setBusy(null);
+    }
+  }
+
+  if (step === "closed") {
+    return (
+      <div className="flex items-center justify-between gap-3 px-4 py-3.5">
+        <div className="flex items-center gap-3">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface/60">
+            <Sparkles className="h-4 w-4 text-muted-foreground" />
+          </span>
+          <div>
+            <p className="text-sm font-medium">Upgrade plan</p>
+            <p className="text-xs text-muted-foreground">
+              Personal $20/mo · Hustle $50/mo · 7-day trial.
+            </p>
+          </div>
+        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          className="shrink-0 rounded-full"
+          onClick={() => setStep("picker")}
+        >
+          See plans
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3 border-t border-border bg-surface/30 px-4 py-4">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <PlanCard
+          name="Personal"
+          price="$20"
+          tagline="For 1 person locking in."
+          features={[
+            "Unlimited messages",
+            "All productivity connectors",
+            "7-day free trial",
+          ]}
+          busy={busy === "personal"}
+          onClick={() => go("personal")}
+        />
+        <PlanCard
+          name="Hustle"
+          price="$50"
+          tagline="For founders + power users."
+          features={[
+            "Everything in Personal",
+            "Priority response speed",
+            "Health + finance connectors",
+            "7-day free trial",
+          ]}
+          highlighted
+          busy={busy === "hustle"}
+          onClick={() => go("hustle")}
+        />
+      </div>
+      <button
+        onClick={() => setStep("closed")}
+        className="w-full text-center text-xs text-muted-foreground hover:text-foreground"
+      >
+        Never mind
+      </button>
+    </div>
+  );
+}
+
+function PlanCard({
+  name,
+  price,
+  tagline,
+  features,
+  highlighted,
+  busy,
+  onClick,
+}: {
+  name: string;
+  price: string;
+  tagline: string;
+  features: string[];
+  highlighted?: boolean;
+  busy?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <div
+      className={`rounded-2xl border bg-card p-4 ${
+        highlighted ? "border-[hsl(var(--amber))]/60" : "border-border"
+      }`}
+    >
+      <div className="flex items-baseline justify-between">
+        <h3 className="text-base font-semibold">{name}</h3>
+        <p className="text-xl font-semibold tabular-nums">
+          {price}
+          <span className="ml-0.5 text-xs font-normal text-muted-foreground">
+            /mo
+          </span>
+        </p>
+      </div>
+      <p className="mt-1 text-xs text-muted-foreground">{tagline}</p>
+      <ul className="mt-3 space-y-1.5 text-xs text-muted-foreground">
+        {features.map((f) => (
+          <li key={f} className="flex items-start gap-1.5">
+            <Check className="mt-0.5 h-3 w-3 shrink-0 text-emerald-500" />
+            <span>{f}</span>
+          </li>
+        ))}
+      </ul>
+      <Button
+        size="sm"
+        className={`mt-4 w-full rounded-full ${
+          highlighted ? "" : "bg-foreground text-background hover:bg-foreground/90"
+        }`}
+        onClick={onClick}
+        disabled={busy}
+      >
+        {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Start 7-day trial"}
+      </Button>
     </div>
   );
 }

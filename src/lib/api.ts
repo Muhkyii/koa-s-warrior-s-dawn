@@ -139,6 +139,14 @@ export const me = {
     }),
 };
 
+export const billing = {
+  checkout: (tier: "personal" | "hustle") =>
+    req<{ url: string }>("/api/billing/checkout", {
+      method: "POST",
+      body: JSON.stringify({ tier }),
+    }),
+};
+
 export const integrations = {
   list: () =>
     req<{ connectors: Integration[] }>("/api/integrations").then(
