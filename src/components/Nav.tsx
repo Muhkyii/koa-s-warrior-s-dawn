@@ -7,7 +7,7 @@ export const Nav = () => {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
         <a
           href="#top"
-          className="font-serif-italic text-[28px] font-normal tracking-tight text-foreground"
+          className="font-koa text-[32px] font-normal tracking-tight text-foreground"
         >
           Koa
         </a>
