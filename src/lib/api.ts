@@ -123,6 +123,8 @@ export const me = {
       method: "PATCH",
       body: JSON.stringify(patch),
     }),
+  delete: () =>
+    req<void>("/auth/me", { method: "DELETE" }),
 };
 
 export const integrations = {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
-import { me, type Profile } from "@/lib/api";
+import { toast } from "sonner";
+import { me, auth, type Profile } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,24 @@ import {
   Globe,
   Check,
   Loader2,
+  CreditCard,
+  Sparkles,
+  Trash2,
+  Clock,
 } from "lucide-react";
+
+// Pull a clean error string out of anything thrown.
+function errToString(e: unknown): string {
+  if (e instanceof Error) return e.message;
+  if (typeof e === "string") return e;
+  if (e && typeof e === "object") {
+    const obj = e as Record<string, unknown>;
+    if (typeof obj.detail === "string") return obj.detail;
+    if (typeof obj.message === "string") return obj.message;
+    try { return JSON.stringify(e); } catch { /* fall through */ }
+  }
+  return "Something went wrong.";
+}
 
 export function SettingsTab() {
   return (
@@ -59,7 +77,6 @@ function ProfileSection() {
   const [tz, setTz] = useState("America/New_York");
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
     me.profile().then((r) => {
@@ -67,28 +84,37 @@ function ProfileSection() {
       setName(r.name ?? "");
       setEmail(r.email ?? "");
       if (r.timezone) setTz(r.timezone);
-    });
+    }).catch((e) => toast.error(errToString(e)));
   }, []);
 
-  const dirty = p && (
+  const dirty = !!p && (
     (name || "") !== (p.name ?? "") ||
     (email || "") !== (p.email ?? "") ||
     tz !== (p.timezone ?? "America/New_York")
   );
 
   async function save() {
-    setBusy(true); setErr(null); setSaved(false);
+    setBusy(true); setSaved(false);
     try {
       const updated = await me.update({ name, email, timezone: tz });
       setP(updated);
       setSaved(true);
+      toast.success("Profile updated");
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "save failed");
+      toast.error(errToString(e));
     } finally {
       setBusy(false);
     }
   }
+
+  let updateLabel: React.ReactNode = "Update";
+  if (busy) updateLabel = <Loader2 className="h-3.5 w-3.5 animate-spin" />;
+  else if (saved) updateLabel = (
+    <span className="flex items-center gap-1">
+      <Check className="h-3.5 w-3.5" /> Saved
+    </span>
+  );
 
   return (
     <section>
@@ -106,9 +132,7 @@ function ProfileSection() {
           disabled={!dirty || busy}
           onClick={save}
         >
-          {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> :
-           saved ? <><Check className="mr-1 h-3.5 w-3.5" /> Saved</> :
-           "Update"}
+          {updateLabel}
         </Button>
       </div>
 
@@ -152,7 +176,6 @@ function ProfileSection() {
         </Field>
       </div>
 
-      {err && <p className="mt-2 text-xs text-destructive">{err}</p>}
       {p?.tier && (
         <p className="mt-3 text-xs text-muted-foreground">
           tier:{" "}
@@ -183,7 +206,7 @@ function Field({
   );
 }
 
-// ─── Appearance — real next-themes wiring ───────────────────────────
+// ─── Appearance ─────────────────────────────────────────────────────
 function AppearanceSection() {
   const { theme, setTheme } = useTheme();
 
@@ -290,9 +313,10 @@ function Faq({ q, a }: { q: string; a: string }) {
   );
 }
 
-// ─── Billing ────────────────────────────────────────────────────────
+// ─── Billing — 4-card layout ────────────────────────────────────────
 function BillingSection() {
   const [p, setP] = useState<Profile | null>(null);
+
   useEffect(() => {
     me.profile().then(setP).catch(() => {});
   }, []);
@@ -307,30 +331,169 @@ function BillingSection() {
       <p className="text-sm text-muted-foreground">
         Get access to Koa and manage your plan.
       </p>
+
       <div className="mt-4 space-y-3">
-        <div className="rounded-xl border border-border bg-surface/60 px-4 py-3">
-          <p className="text-sm font-medium">
-            {p?.tier === "trialing" && trialDaysLeft != null
-              ? `${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left in trial`
-              : p?.tier === "edge" || p?.tier === "hustle" || p?.tier === "personal"
-              ? `${p.tier} plan — active`
-              : "Free tier"}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {p?.tier === "free"
-              ? "25 messages/day. Upgrade to chat without limits."
-              : p?.tier === "trialing"
-              ? "Then $9.99, billed monthly."
-              : "Renews automatically."}
-          </p>
-        </div>
-        <Button
-          className="w-full rounded-full bg-foreground text-background hover:bg-foreground/90"
+        <PlanStatusCard profile={p} trialDaysLeft={trialDaysLeft} />
+        <BillingActionCard
+          icon={Sparkles}
+          title="Upgrade plan"
+          subtitle={
+            p?.tier === "edge" || p?.tier === "hustle" || p?.tier === "personal"
+              ? "You're on a paid plan."
+              : "Unlock unlimited messages + premium features."
+          }
+          ctaLabel="See plans"
           disabled
-        >
-          Manage Subscription — coming soon
-        </Button>
+          comingSoon
+        />
+        <BillingActionCard
+          icon={CreditCard}
+          title="Update payment"
+          subtitle="Manage your card and billing details via Stripe."
+          ctaLabel="Open billing portal"
+          disabled
+          comingSoon
+        />
+        <DeleteAccountCard />
       </div>
     </section>
+  );
+}
+
+function PlanStatusCard({
+  profile,
+  trialDaysLeft,
+}: {
+  profile: Profile | null;
+  trialDaysLeft: number | null;
+}) {
+  if (!profile) {
+    return (
+      <div className="rounded-xl border border-border bg-surface/60 px-4 py-3 text-sm text-muted-foreground">
+        loading…
+      </div>
+    );
+  }
+
+  const isTrialing = profile.tier === "trialing" && trialDaysLeft != null;
+  const isPaid = profile.tier === "edge" || profile.tier === "hustle" ||
+                 profile.tier === "personal";
+
+  let title: string;
+  let subtitle: string;
+  let accent: string;
+
+  if (isTrialing) {
+    title = `${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left in trial`;
+    subtitle = "Then $9.99, billed monthly.";
+    accent = trialDaysLeft! <= 1 ? "border-[hsl(var(--amber))]/60" : "border-border";
+  } else if (isPaid) {
+    title = `${profile.tier} plan — active`;
+    subtitle = "Renews automatically.";
+    accent = "border-emerald-500/40";
+  } else {
+    title = "Free tier";
+    subtitle = "25 messages/day. Upgrade to chat without limits.";
+    accent = "border-border";
+  }
+
+  return (
+    <div className={`rounded-xl border bg-surface/60 px-4 py-3.5 ${accent}`}>
+      <div className="flex items-center gap-2.5">
+        <Clock className="h-4 w-4 text-muted-foreground" />
+        <p className="text-sm font-medium">{title}</p>
+      </div>
+      <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>
+    </div>
+  );
+}
+
+function BillingActionCard({
+  icon: Icon,
+  title,
+  subtitle,
+  ctaLabel,
+  disabled,
+  comingSoon,
+  onClick,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  subtitle: string;
+  ctaLabel: string;
+  disabled?: boolean;
+  comingSoon?: boolean;
+  onClick?: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface/60 px-4 py-3.5">
+      <div className="flex items-center gap-3">
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-background/50">
+          <Icon className="h-4 w-4 text-muted-foreground" />
+        </span>
+        <div>
+          <p className="text-sm font-medium">{title}</p>
+          <p className="text-xs text-muted-foreground">{subtitle}</p>
+        </div>
+      </div>
+      <Button
+        size="sm"
+        variant="outline"
+        className="shrink-0 rounded-full"
+        disabled={disabled}
+        onClick={onClick}
+      >
+        {comingSoon ? "Soon" : ctaLabel}
+      </Button>
+    </div>
+  );
+}
+
+function DeleteAccountCard() {
+  const [busy, setBusy] = useState(false);
+
+  async function onDelete() {
+    const sure = confirm(
+      "Delete your Koa account?\n\n" +
+      "This wipes your profile, trial state, and bot memory. " +
+      "You'll need to start over from scratch. This cannot be undone.",
+    );
+    if (!sure) return;
+    setBusy(true);
+    try {
+      await me.delete();
+      auth.logout();
+      toast.success("Account deleted");
+      window.location.href = "/";
+    } catch (e) {
+      toast.error(errToString(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3.5">
+      <div className="flex items-center gap-3">
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-destructive/15">
+          <Trash2 className="h-4 w-4 text-destructive" />
+        </span>
+        <div>
+          <p className="text-sm font-medium">Delete account</p>
+          <p className="text-xs text-muted-foreground">
+            Permanently wipes your profile and bot memory.
+          </p>
+        </div>
+      </div>
+      <Button
+        size="sm"
+        variant="destructive"
+        className="shrink-0 rounded-full"
+        disabled={busy}
+        onClick={onDelete}
+      >
+        {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Delete"}
+      </Button>
+    </div>
   );
 }
