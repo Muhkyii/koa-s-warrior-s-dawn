@@ -1,9 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
-// A small set of common country codes. Add more as needed — Twilio's free
-// trial only sends to verified numbers anyway, so this list is enough to
-// cover most early-test cases.
 type Country = { code: string; flag: string; name: string };
 
 export const COUNTRIES: Country[] = [
@@ -31,14 +28,6 @@ export const COUNTRIES: Country[] = [
   { code: "46",  flag: "🇸🇪", name: "Sweden" },
 ];
 
-function formatUS(digits: string): string {
-  // 555-555-5555 style for 10-digit US/CA numbers.
-  const d = digits.slice(0, 10);
-  if (d.length <= 3) return d;
-  if (d.length <= 6) return `${d.slice(0, 3)}-${d.slice(3)}`;
-  return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`;
-}
-
 export function PhoneInput({
   value,
   onChange,
@@ -54,24 +43,26 @@ export function PhoneInput({
   const [digits, setDigits] = useState("");
   const [open, setOpen] = useState(false);
   const dropRef = useRef<HTMLDivElement | null>(null);
+  const initialized = useRef(false);
 
-  // Initialize from `value` once
+  // Initialize from incoming `value` exactly once.
   useEffect(() => {
-    if (!value) return;
+    if (initialized.current) return;
+    initialized.current = true;
+    if (!value) {
+      onChange(`+${country.code}`);
+      return;
+    }
     const stripped = value.replace(/[^\d]/g, "");
     const match = COUNTRIES.find((c) => stripped.startsWith(c.code));
     if (match) {
       setCountry(match);
       setDigits(stripped.slice(match.code.length));
+    } else {
+      setDigits(stripped);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Bubble E.164 up
-  useEffect(() => {
-    onChange(`+${country.code}${digits}`);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [country, digits]);
 
   // Click-outside closes dropdown
   useEffect(() => {
@@ -84,7 +75,21 @@ export function PhoneInput({
     return () => document.removeEventListener("mousedown", onDoc);
   }, [open]);
 
-  const display = country.code === "1" ? formatUS(digits) : digits;
+  function emit(nextDigits: string, nextCountry: Country) {
+    onChange(`+${nextCountry.code}${nextDigits}`);
+  }
+
+  function onTyped(raw: string) {
+    const next = raw.replace(/[^\d]/g, "").slice(0, 15);
+    setDigits(next);
+    emit(next, country);
+  }
+
+  function pickCountry(c: Country) {
+    setCountry(c);
+    setOpen(false);
+    emit(digits, c);
+  }
 
   return (
     <div className="relative" ref={dropRef}>
@@ -100,29 +105,23 @@ export function PhoneInput({
         </button>
         <input
           type="tel"
-          inputMode="tel"
+          inputMode="numeric"
           autoComplete="tel"
           autoFocus={autoFocus}
-          placeholder={country.code === "1" ? "555-123-4567" : "phone number"}
-          value={display}
-          onChange={(e) => {
-            const next = e.target.value.replace(/[^\d]/g, "");
-            setDigits(next.slice(0, 15));
-          }}
-          className="w-full bg-transparent px-3 py-2.5 text-sm focus:outline-none"
+          placeholder="phone number"
+          value={digits}
+          onChange={(e) => onTyped(e.target.value)}
+          className="w-full bg-transparent px-3 py-2.5 font-mono tabular-nums text-sm focus:outline-none"
         />
       </div>
 
       {open && (
         <div className="absolute z-20 mt-1 max-h-64 w-full overflow-auto rounded-xl border border-border bg-popover py-1 shadow-card">
-          {COUNTRIES.map((c, i) => (
+          {COUNTRIES.map((c) => (
             <button
               key={`${c.code}-${c.name}`}
               type="button"
-              onClick={() => {
-                setCountry(c);
-                setOpen(false);
-              }}
+              onClick={() => pickCountry(c)}
               className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-surface ${
                 country === c ? "bg-surface/60" : ""
               }`}

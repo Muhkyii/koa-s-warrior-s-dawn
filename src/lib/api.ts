@@ -45,18 +45,27 @@ export type AuthVerifyResponse = {
   user: { chat_id: number; phone: string; email: string };
 };
 
+export type AuthIdentifier =
+  | { phone: string; email?: undefined }
+  | { phone?: undefined; email: string };
+
 export const auth = {
-  start: (phone: string, email?: string) =>
-    req<AuthStartResponse>("/auth/start", {
+  /** Send OTP. Pass {phone} for SMS or {email} for email-only auth. */
+  start: (id: AuthIdentifier) => {
+    const body =
+      "phone" in id && id.phone
+        ? { phone: id.phone, channel: "sms" }
+        : { email: (id as { email: string }).email, channel: "email" };
+    return req<AuthStartResponse>("/auth/start", {
       method: "POST",
-      body: JSON.stringify(
-        email ? { phone, email, channel: "email" } : { phone, channel: "sms" }
-      ),
-    }),
-  verify: (phone: string, code: string) =>
+      body: JSON.stringify(body),
+    });
+  },
+  /** Verify OTP. Pass {phone} or {email} matching how you started. */
+  verify: (id: AuthIdentifier, code: string) =>
     req<AuthVerifyResponse>("/auth/verify", {
       method: "POST",
-      body: JSON.stringify({ phone, code }),
+      body: JSON.stringify({ ...id, code }),
     }),
   logout: () => setToken(null),
 };
