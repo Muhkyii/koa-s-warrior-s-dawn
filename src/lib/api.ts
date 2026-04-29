@@ -123,8 +123,11 @@ export const me = {
       method: "PATCH",
       body: JSON.stringify(patch),
     }),
-  delete: () =>
-    req<void>("/auth/me", { method: "DELETE" }),
+  delete: (reason?: string, details?: string) =>
+    req<void>("/auth/me", {
+      method: "DELETE",
+      body: reason || details ? JSON.stringify({ reason, details }) : undefined,
+    }),
 };
 
 export const integrations = {

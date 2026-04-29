@@ -313,9 +313,10 @@ function Faq({ q, a }: { q: string; a: string }) {
   );
 }
 
-// ─── Billing — 4-card layout ────────────────────────────────────────
+// ─── Billing — Tomo-style Manage Subscription dropdown ──────────────
 function BillingSection() {
   const [p, setP] = useState<Profile | null>(null);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     me.profile().then(setP).catch(() => {});
@@ -334,27 +335,44 @@ function BillingSection() {
 
       <div className="mt-4 space-y-3">
         <PlanStatusCard profile={p} trialDaysLeft={trialDaysLeft} />
-        <BillingActionCard
-          icon={Sparkles}
-          title="Upgrade plan"
-          subtitle={
-            p?.tier === "edge" || p?.tier === "hustle" || p?.tier === "personal"
-              ? "You're on a paid plan."
-              : "Unlock unlimited messages + premium features."
-          }
-          ctaLabel="See plans"
-          disabled
-          comingSoon
-        />
-        <BillingActionCard
-          icon={CreditCard}
-          title="Update payment"
-          subtitle="Manage your card and billing details via Stripe."
-          ctaLabel="Open billing portal"
-          disabled
-          comingSoon
-        />
-        <DeleteAccountCard />
+
+        <div className="overflow-hidden rounded-2xl border border-border bg-surface/40">
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className="flex w-full items-center justify-between px-4 py-3.5 text-left text-sm font-medium hover:bg-surface/60"
+          >
+            <span>Manage Subscription</span>
+            <ChevronDown
+              className={`h-4 w-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
+            />
+          </button>
+
+          {open && (
+            <div className="border-t border-border bg-background/40">
+              <ManageOption
+                icon={Sparkles}
+                title="Upgrade plan"
+                subtitle="Unlock unlimited messages + premium features."
+                ctaLabel="See plans"
+                disabled
+                comingSoon
+              />
+              <div className="mx-4 h-px bg-border" />
+              <ManageOption
+                icon={CreditCard}
+                title="Update payment"
+                subtitle="Manage your card and billing details via Stripe."
+                ctaLabel="Open billing portal"
+                disabled
+                comingSoon
+              />
+              <div className="mx-4 h-px bg-border" />
+              <CancelOption
+                isTrialing={p?.tier === "trialing"}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );
@@ -408,7 +426,7 @@ function PlanStatusCard({
   );
 }
 
-function BillingActionCard({
+function ManageOption({
   icon: Icon,
   title,
   subtitle,
@@ -426,9 +444,9 @@ function BillingActionCard({
   onClick?: () => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface/60 px-4 py-3.5">
+    <div className="flex items-center justify-between gap-3 px-4 py-3.5">
       <div className="flex items-center gap-3">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-background/50">
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface/60">
           <Icon className="h-4 w-4 text-muted-foreground" />
         </span>
         <div>
@@ -449,19 +467,27 @@ function BillingActionCard({
   );
 }
 
-function DeleteAccountCard() {
+const CANCEL_REASONS = [
+  { value: "too_expensive",  label: "Too expensive" },
+  { value: "not_using",      label: "I'm not using it enough" },
+  { value: "switching",      label: "Switching to a different product" },
+  { value: "missing_feature",label: "Missing a feature I need" },
+  { value: "privacy",        label: "Privacy concerns" },
+  { value: "just_trying",    label: "Just trying it out" },
+  { value: "other",          label: "Other" },
+] as const;
+
+function CancelOption({ isTrialing }: { isTrialing: boolean }) {
+  const [step, setStep] = useState<"closed" | "form" | "confirm">("closed");
+  const [reason, setReason] = useState<string>("");
+  const [details, setDetails] = useState("");
   const [busy, setBusy] = useState(false);
 
-  async function onDelete() {
-    const sure = confirm(
-      "Delete your Koa account?\n\n" +
-      "This wipes your profile, trial state, and bot memory. " +
-      "You'll need to start over from scratch. This cannot be undone.",
-    );
-    if (!sure) return;
+  async function performDelete() {
+    if (!reason) return;
     setBusy(true);
     try {
-      await me.delete();
+      await me.delete(reason, details);
       auth.logout();
       toast.success("Account deleted");
       window.location.href = "/";
@@ -472,28 +498,95 @@ function DeleteAccountCard() {
     }
   }
 
-  return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3.5">
-      <div className="flex items-center gap-3">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-destructive/15">
-          <Trash2 className="h-4 w-4 text-destructive" />
-        </span>
-        <div>
-          <p className="text-sm font-medium">Delete account</p>
-          <p className="text-xs text-muted-foreground">
-            Permanently wipes your profile and bot memory.
-          </p>
+  if (step === "closed") {
+    return (
+      <div className="flex items-center justify-between gap-3 px-4 py-3.5">
+        <div className="flex items-center gap-3">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-destructive/15">
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </span>
+          <div>
+            <p className="text-sm font-medium">
+              {isTrialing ? "Cancel trial" : "Delete account"}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {isTrialing
+                ? "Stop your trial and wipe your account."
+                : "Permanently wipe your profile and bot memory."}
+            </p>
+          </div>
         </div>
+        <Button
+          size="sm"
+          variant="outline"
+          className="shrink-0 rounded-full border-destructive/40 text-destructive hover:bg-destructive/10"
+          onClick={() => setStep("form")}
+        >
+          {isTrialing ? "Cancel" : "Delete"}
+        </Button>
       </div>
-      <Button
-        size="sm"
-        variant="destructive"
-        className="shrink-0 rounded-full"
-        disabled={busy}
-        onClick={onDelete}
-      >
-        {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Delete"}
-      </Button>
+    );
+  }
+
+  return (
+    <div className="space-y-3 border-t border-border bg-destructive/5 px-4 py-4">
+      <div className="flex items-start gap-2 text-xs text-muted-foreground">
+        <Trash2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-destructive" />
+        <p>
+          Quick check-in before you go: why are you{" "}
+          {isTrialing ? "cancelling" : "deleting"}? Helps us improve.
+        </p>
+      </div>
+
+      <Select value={reason} onValueChange={setReason}>
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Select a reason" />
+        </SelectTrigger>
+        <SelectContent>
+          {CANCEL_REASONS.map((r) => (
+            <SelectItem key={r.value} value={r.value}>
+              {r.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {reason === "other" && (
+        <textarea
+          placeholder="Tell us more (optional)"
+          value={details}
+          onChange={(e) => setDetails(e.target.value)}
+          rows={3}
+          className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+      )}
+
+      <div className="flex items-center justify-between gap-2 pt-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="rounded-full"
+          onClick={() => {
+            setStep("closed");
+            setReason("");
+            setDetails("");
+          }}
+          disabled={busy}
+        >
+          Never mind
+        </Button>
+        <Button
+          variant="destructive"
+          size="sm"
+          className="rounded-full"
+          onClick={performDelete}
+          disabled={!reason || busy}
+        >
+          {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : (
+            isTrialing ? "Cancel trial" : "Delete account"
+          )}
+        </Button>
+      </div>
     </div>
   );
 }
