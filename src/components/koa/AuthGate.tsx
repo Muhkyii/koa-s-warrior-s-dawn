@@ -1,8 +1,7 @@
 // src/components/koa/AuthGate.tsx
 //
-// Wraps the dashboard. Two stages: phone+email → 6-digit code. JWT lands
-// in localStorage on success. Uses the site's shadcn primitives so it
-// matches the rest of the brand.
+// Phone-only sign-in. We send a 6-digit code via SMS (Twilio) and verify
+// against the Koa backend. JWT lands in localStorage on success.
 
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { auth, getToken, setToken } from "@/lib/api";
@@ -15,13 +14,12 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 
-type Stage = "id" | "code";
+type Stage = "phone" | "code";
 
 export function AuthGate({ children }: { children: ReactNode }) {
   const [authed, setAuthed] = useState<boolean | null>(null);
-  const [stage, setStage] = useState<Stage>("id");
+  const [stage, setStage] = useState<Stage>("phone");
   const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -38,8 +36,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
     setErr(null);
     setBusy(true);
     try {
-      if (stage === "id") {
-        await auth.start(phone, email);
+      if (stage === "phone") {
+        await auth.start(phone);
         setStage("code");
       } else {
         const { jwt } = await auth.verify(phone, code);
@@ -60,42 +58,31 @@ export function AuthGate({ children }: { children: ReactNode }) {
           Sign in to <span className="font-serif-italic font-normal">Koa</span>
         </h1>
         <p className="text-sm text-muted-foreground">
-          {stage === "id"
-            ? "Same phone you text. We'll email a 6-digit code."
-            : `code sent to ${email}`}
+          {stage === "phone"
+            ? "Enter your phone number — we'll text you a 6-digit code."
+            : `Code sent to ${phone}`}
         </p>
       </header>
 
       <form onSubmit={submit} className="space-y-4">
-        {stage === "id" ? (
-          <>
-            <div className="space-y-1.5">
-              <Label htmlFor="phone">phone</Label>
-              <Input
-                id="phone"
-                autoFocus
-                required
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                placeholder="+1 555 123 4567"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="email">email</Label>
-              <Input
-                id="email"
-                required
-                type="email"
-                autoComplete="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-          </>
+        {stage === "phone" ? (
+          <div className="space-y-1.5">
+            <Label htmlFor="phone">phone</Label>
+            <Input
+              id="phone"
+              autoFocus
+              required
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder="+1 555 123 4567"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Same number you text Koa from. Standard SMS rates apply.
+            </p>
+          </div>
         ) : (
           <div className="flex flex-col items-center gap-3">
             <InputOTP
@@ -117,13 +104,13 @@ export function AuthGate({ children }: { children: ReactNode }) {
               type="button"
               disabled={busy}
               onClick={() => {
-                setStage("id");
+                setStage("phone");
                 setCode("");
                 setErr(null);
               }}
               className="text-xs text-muted-foreground hover:text-foreground"
             >
-              ← use different phone or email
+              ← use a different number
             </button>
           </div>
         )}
@@ -133,7 +120,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
           disabled={busy || (stage === "code" && code.length < 6)}
           className="h-11 w-full rounded-full"
         >
-          {busy ? "…" : stage === "id" ? "Send code" : "Verify & continue"}
+          {busy ? "…" : stage === "phone" ? "Send code" : "Verify & continue"}
         </Button>
 
         {err && (

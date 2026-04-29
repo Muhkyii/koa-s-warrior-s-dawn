@@ -46,10 +46,12 @@ export type AuthVerifyResponse = {
 };
 
 export const auth = {
-  start: (phone: string, email: string) =>
+  start: (phone: string, email?: string) =>
     req<AuthStartResponse>("/auth/start", {
       method: "POST",
-      body: JSON.stringify({ phone, email }),
+      body: JSON.stringify(
+        email ? { phone, email, channel: "email" } : { phone, channel: "sms" }
+      ),
     }),
   verify: (phone: string, code: string) =>
     req<AuthVerifyResponse>("/auth/verify", {
